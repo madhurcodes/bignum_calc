@@ -3,28 +3,41 @@
 
 #define max_length 11
 typedef struct {
-        int digits[max_length*2];        
-	    int sign;			/* 1 if positive, -1 if negative */ 
-        int decimal_point;			/* when no. is written in reverse index of digit *after* decimal point( 85.4 -> 1, 9988.23 ->2, 1.45345 -> 5 ()*/
-		int last_digit;   /* index of last _dig(first digit in reality) = length of no.- 1 */
+	int digits[max_length*2];        
+	int sign;			/* 1 if positive, -1 if negative */ 
+	int decimal_point;			/* when no. is written in reverse index of digit *after* decimal point( 85.4 -> 1, 9988.23 ->2, 1.45345 -> 5 ()*/
+	int last_digit;   /* index of last _dig(first digit in reality) = length of no.- 1 */
 } bignum;
 int find_last_index(bignum *a);
 bignum* product_with_digit(bignum *inp, int dig);
 void print_big(bignum *inp);
+bignum* product(bignum *a, bignum *b);
+void shift_right(bignum *inp, int k);
+int divide_guess_digit(bignum* a, bignum* b);
+bignum* divide(bignum *a, bignum *b);
+bignum* divide_single_digit(bignum* a, int b);
+bignum* bigify_int(int inp);
+bignum* square_root(bignum *a);
+bignum* logarithm(bignum  *inp);
+bignum*  power(bignum *a, bignum *b);
+char* bignum_to_string(bignum *inp);
+bignum* string_to_bignum(char *inp);
+
+
 bignum* product_with_digit(bignum *inp, int dig){
-		int carry=0;
-		int kk;
-		//int res[max_length*2];
-		bignum *ret=  malloc(sizeof *ret);
-		for(kk=0;kk <= inp->last_digit;kk++){
-			ret->digits[kk] = (inp->digits[kk]*dig +carry)%10;
-			carry= (inp->digits[kk]*dig +carry)/10;
-		}
-		// round off and move res to ret
-		ret->digits[inp->last_digit+1] = carry;
-		ret->decimal_point = inp->decimal_point;
-		ret->last_digit = find_last_index(ret);
-		return ret;
+	int carry=0;
+	int kk;
+	//int res[max_length*2];
+	bignum *ret=  malloc(sizeof *ret);
+	for(kk=0;kk <= inp->last_digit;kk++){
+		ret->digits[kk] = (inp->digits[kk]*dig +carry)%10;
+		carry= (inp->digits[kk]*dig +carry)/10;
+	}
+	// round off and move res to ret
+	ret->digits[inp->last_digit+1] = carry;
+	ret->decimal_point = inp->decimal_point;
+	ret->last_digit = find_last_index(ret);
+	return ret;
 }
 bignum* product(bignum *a, bignum *b){
 	bignum *ret=  malloc(sizeof *ret);
@@ -102,22 +115,22 @@ bignum* divide(bignum *a, bignum *b){
 		subtracted = subtract(dividend,guess_product);
 		free(dividend);
 		dividend = subtracted;
-		shift_right(ret);
+		shift_right(ret,1);
 		ret->digits[0] = guess;
 		if(taken_digit>0){
 			//take one more digit
-			shift_right(dividend);
+			shift_right(dividend,1);
 			taken_digit -=1;
 			dividend[0] = a->digits[taken_digit];
 		}
 		else{
-			shift_right(dividend);
+			shift_right(dividend,1);
 			dividend[0] = 0;
 			ret->decimal_point += 1;
 		}
 		dividend->last_digit = find_last_index(dividend); //not needed probz if sub also does this
 		free(guess_product);
-		
+
 	}
 	free(dividend);
 	a->decimal_point = deca ;
@@ -156,9 +169,9 @@ bignum* bigify_int(int inp){
 bignum* square_root(bignum *a){
 	bignum* copy;
 	bignum* y;
-/* 	bignum* sum;
-	bignum* div1;
-	bignum* div2; */
+	/* 	bignum* sum;
+bignum* div1;
+bignum* div2; */
 	bignum* accuracy;
 	bignum* n;
 	accuracy = bigify_int(1);
@@ -167,7 +180,7 @@ bignum* square_root(bignum *a){
 	copy = product(a,1);
 	y = bigify_int(1);
 	if(a->sign=-1){
-		
+
 		//raise error and stuff
 	}
 	else{
@@ -182,59 +195,126 @@ bignum* square_root(bignum *a){
 /*Returns the square root of n. Note that the function */
 /* float squareRoot(float n)
 {
- 
-  float x = n;
-  float y = 1;
-  float e = 0.000001; 
-  while(x - y > e)
-  {
-    x = (x + y)/2;
-    y = n/x;
-  }
-  return x;
+
+float x = n;
+float y = 1;
+float e = 0.000001; 
+while(x - y > e)
+{
+x = (x + y)/2;
+y = n/x;
+}
+return x;
 } */
 
 //
+bignum* logarithm(bignum  *inp){
+	bignum* ret = malloc(sizeof *ret);
+
+
+
+
+	return ret;	
+}
 bignum*  power(bignum *a, bignum *b){
-	
-	
+	bignum* ret = malloc(sizeof *ret);
+
+
+
+
+
+
+	return ret;	
 }
 void print_big(bignum *inp){
-		int kk;
-		if(inp->sign==-1){
-			printf("- ");
+	int kk;
+	if(inp->sign==-1){
+		printf("- ");
+	}
+	for(kk=inp->last_digit;kk>=0;kk--){
+		if(kk==inp->decimal_point-1){
+			printf(".");
 		}
-		for(kk=inp->last_digit;kk>=0;kk--){
-			if(kk==inp->decimal_point-1){
-				printf(".");
-			}
-			printf("%d",inp->digits[kk]);
-		}
+		printf("%d",inp->digits[kk]);
+	}
 }
-int find_last_index(bignum *inp){
+int find_last_index ( bignum *inp ) { 
 	int c=0; //  returns -1 if no digits in no. ie number is 0
 	int flag=0;
 	int kk;
 	for(kk=max_length-1;kk>=0;kk--){
-			if(flag==0){
-				if(inp->digits[kk]==0){
-					continue;
-				}
-				else{
-					flag=1;
-				}
+		if(flag==0){
+			if(inp->digits[kk]==0){
+				continue;
 			}
-			c+=1;
+			else{
+				flag=1;
+			}
+		}
+		c+=1;
 	}
 	return c-1;
 }
+
+
+bignum* string_to_bignum(char *inp){
+	bignum* ret = malloc(sizeof *ret);
+	// only positive ( I'll let unary negaion take care of the negative parts)
+	ret->sign = 1;
+	int point_seen ;
+	int d,a=0;
+	if (*inp == '-'){
+		inp++;
+		ret->sign = -1;
+	};
+	for (point_seen = 0; *inp; inp++){
+		if (*inp == '.'){
+			point_seen = 1; 
+			continue;
+		};
+		d = *inp - '0';
+		if (d >= 0 && d <= 9){
+			if (point_seen) ret->decimal_point+=1;
+			ret->digits[a] = d;
+			shift_right(ret,1)
+		};
+	};
+	ret->last_digit = find_last_index(ret);
+	return ret;
+}
+char* bignum_to_string(bignum *inp){
+	char *ret;
+	char *start = ret;
+	int kk;
+	if(inp->sign==-1){
+		ret = malloc(1);
+		ret = '-';
+		ret++;
+	}
+	for(kk = inp->last_digit; kk>=0;kk--){
+		if((kk+1) == inp->decimal_point ){
+			ret = malloc(1);
+			ret = '.';
+			ret++;
+		}
+		ret = malloc(1);
+		ret = (char) (48 + inp->digits[kk]);
+		ret++;
+	}
+	ret = malloc(1);
+	ret = '\0';
+	ret++;
+	return start;
+}
+
+
 
 
 int main(){
 	int a = 4;
 	//printf("dddd");
 	bignum *v=  malloc(sizeof *v);
-	
+
 	v->sign =1;
 	v->digits[0] = 9;
 	v->digits[1] = 6;
@@ -246,7 +326,7 @@ int main(){
 	printf("\n");
 	print_big(product_with_digit(v,8));
 	printf("\n");
-	
-	
+
+
 	return 0;
 }

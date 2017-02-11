@@ -71,13 +71,13 @@ void yyerror(const char* s) {
 
 
 /*
-expression: T_INT				{ $$ = $$; }
-	  | expression T_PLUS expression	{ $$ = $$; }
-	  | expression T_MINUS expression	{ $$ = $$; }
-	  | expression T_MULTIPLY expression	{ $$ = $$; }
-	  | T_LEFT expression T_RIGHT		{ $$ = $$; }
-	  | T_SQRT expression				{ $$ = $$  ;}
-	  | T_LOG  expression   			 {  $$ = $$ ;}
-	  | T_POW T_LEFT expression T_COMMA expression T_RIGHT    { $$ = $$ ;}
-;
+expression: T_INT				
+	  | expression T_PLUS expression	{ $$ = concat("Plus ",concat($1,$3));}
+	  | expression T_MINUS expression	{ $$ = concat("-- ",concat($1,$3));}
+	  | expression T_MULTIPLY expression	{ $$ = concat("prod ",concat($1,$3));}
+	  | expression T_DIVIDE expression	{ $$ = concat("divs ",concat($1,$3));}
+	  | T_LEFT expression T_RIGHT		{ $$ = concat("bracketed ",$2);}
+	  | T_SQRT expression				{ $$ = concat("rooted ",$2);}
+	  | T_LOG  expression   			{ $$ = concat("logged ",$2);}
+	  | T_POW T_LEFT expression T_COMMA expression T_RIGHT  { $$ = concat("powered ",concat($3,$5));}
 */

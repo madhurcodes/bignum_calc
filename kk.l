@@ -18,8 +18,8 @@
 "*"		{return T_MULTIPLY;}
 "/"		{return T_DIVIDE;}
 ","		{return T_COMMA;}
-"( "		{return T_LEFT;}
-" )"		{return T_RIGHT;}
+"("		{return T_LEFT;}
+")"		{return T_RIGHT;}
 "SQRT"        {return T_SQRT;}
 "LOG"        {return T_LOG;}
 "POW"        {return T_POW;}
