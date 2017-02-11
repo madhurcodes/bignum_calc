@@ -36,7 +36,7 @@ bignum* product(bignum *a, bignum *b){
 		resp = product_with_digit(a,b->digits[k]);
 		resp->decimal_point=0; // no decimal addition wanted
 		shift_right(resp,k);
-		srep = sum(resp,ret);
+		srep = add_bignum(resp,ret);
 		free(ret);
 		ret = srep;
 		free(resp);
@@ -56,16 +56,146 @@ void shift_right(bignum *inp, int k){ // NOTE : Unsafe since it changes the pass
 		inp->digits[0] = 0;
 	}
 }
-
+int divide_guess_digit(bignum* a, bignum* b){
+	int kk;
+	bignum* guess_product;
+	for(kk=9;kk>=0;kk--){
+		guess_product = product_with_digit(b,kk);
+		if(is_greater(a,guess_product)){
+			free(guess_product);
+			continue;
+		}
+		else{
+			free(guess_product);
+			break;
+		}
+	}
+	return kk;
+}
 bignum* divide(bignum *a, bignum *b){
-	
-	
-	
-	
-	
-	
-	
-	
+	// ignore decimals in inputs initially, taking care of them later 
+	// use isgreater for compare 1 if a>b -1 otherwise
+	// I store dec points of inputs at start and cange them, will change back at end,
+	int deca, decb;
+	deca = a->decimal_point;
+	signa = a->sign;
+	signb = b->sign;
+	decb = b->decimal_point;
+	a->decimal_point = 0 ;
+	b->decimal_point = 0 ;
+	a->sign = 1 ;
+	b->sign = 1 ;
+	bignum* ret = malloc(sizeof *ret);
+	bignum* dividend = malloc(sizeof *dividend);
+	bignum* guess_product = malloc(sizeof *guess_product);
+	bignum* subtracted = malloc(sizeof *subtracted);
+	dividend->sign = 1;
+	dividend->last_digit = 0;
+	dividend->decimal_point = 0;
+	int taken_digit = a->last_digit;
+	dividend[0] = a->digits[last_digit];
+	//dividend = product_with_digit(a,1);
+	int guess;
+	while( dividend->last_digit >= 0  )  { //find last dig gives -1 for number 0 
+		guess = divide_guess_digit(dividend,b);
+		guess_product  = product_with_digit(b,guess);
+		subtracted = subtract(dividend,guess_product);
+		free(dividend);
+		dividend = subtracted;
+		shift_right(ret);
+		ret->digits[0] = guess;
+		if(taken_digit>0){
+			//take one more digit
+			shift_right(dividend);
+			taken_digit -=1;
+			dividend[0] = a->digits[taken_digit];
+		}
+		else{
+			shift_right(dividend);
+			dividend[0] = 0;
+			ret->decimal_point += 1;
+		}
+		dividend->last_digit = find_last_index(dividend); //not needed probz if sub also does this
+		free(guess_product);
+		
+	}
+	free(dividend);
+	a->decimal_point = deca ;
+	b->decimal_point = decb ;
+	a->sign = signa ;
+	b->sign = signb ;
+	return ret;
+}
+bignum* divide_single_digit(bignum* a, int b){
+	bignum * ret , temp ;
+	ret = malloc(sizeof *ret);
+	temp = bigify_int(b);
+	ret = divide(a,temp);
+	free(temp);
+	return ret;
+}
+bignum* bigify_int(int inp){
+	bignum *temp;
+	temp = malloc(sizeof *temp);
+	temp->last_digit = -1;
+	temp->decimal_point = 0;
+	if(inp<0){
+		temp->sign=-1;
+		inp = -inp;
+	}
+	else{
+		temp->sign=1;
+	}
+	while(inp>0){
+		temp->digits[0] = inp % 10;
+		temp->last_digit + =1;
+		inp = inp / 10
+	}
+	return temp;
+}
+bignum* square_root(bignum *a){
+	bignum* copy;
+	bignum* y;
+/* 	bignum* sum;
+	bignum* div1;
+	bignum* div2; */
+	bignum* accuracy;
+	bignum* n;
+	accuracy = bigify_int(1);
+	accuracy->decimal_point = 6;
+	n = bigify_int(n);
+	copy = product(a,1);
+	y = bigify_int(1);
+	if(a->sign=-1){
+		
+		//raise error and stuff
+	}
+	else{
+		while(is_greater(subtract_bignum(copy,y),accuracy)){  // Im lazy and dont free stuff here (if coz problems then do it)
+			copy = divide_single_digit(add_bignum(copy,y),2);
+			y = divide(n,copy);
+		}
+	}
+	return copy;
+}
+///
+/*Returns the square root of n. Note that the function */
+/* float squareRoot(float n)
+{
+ 
+  float x = n;
+  float y = 1;
+  float e = 0.000001; 
+  while(x - y > e)
+  {
+    x = (x + y)/2;
+    y = n/x;
+  }
+  return x;
+} */
+
+//
+bignum*  power(bignum *a, bignum *b){
 	
 	
 }
@@ -82,7 +212,7 @@ void print_big(bignum *inp){
 		}
 }
 int find_last_index(bignum *inp){
-	int c=0;
+	int c=0; //  returns -1 if no digits in no. ie number is 0
 	int flag=0;
 	int kk;
 	for(kk=max_length-1;kk>=0;kk--){
@@ -98,6 +228,7 @@ int find_last_index(bignum *inp){
 	}
 	return c-1;
 }
+
 
 int main(){
 	int a = 4;
