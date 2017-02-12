@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define max_length 11
 typedef struct {
@@ -22,7 +23,9 @@ bignum* logarithm(bignum  *inp);
 bignum*  power(bignum *a, bignum *b);
 char* bignum_to_string(bignum *inp);
 bignum* string_to_bignum(char *inp);
-
+bignum* subtract_bignum(bignum* a , bignum* b);
+bignum* add_bignum(bignum* a , bignum* b);
+int is_greater(bignum* a , bignum* b);
 
 bignum* product_with_digit(bignum *inp, int dig){
 	int carry=0;
@@ -49,9 +52,9 @@ bignum* product(bignum *a, bignum *b){
 		resp = product_with_digit(a,b->digits[k]);
 		resp->decimal_point=0; // no decimal addition wanted
 		shift_right(resp,k);
-		srep = add_bignum(resp,ret);
+		sresp = add_bignum(resp,ret);
 		free(ret);
-		ret = srep;
+		ret = sresp;
 		free(resp);
 	}
 	ret->decimal_point = a->decimal_point + b->decimal_point;
@@ -89,7 +92,7 @@ bignum* divide(bignum *a, bignum *b){
 	// ignore decimals in inputs initially, taking care of them later 
 	// use isgreater for compare 1 if a>b -1 otherwise
 	// I store dec points of inputs at start and cange them, will change back at end,
-	int deca, decb;
+	int deca, decb, signa,signb;
 	deca = a->decimal_point;
 	signa = a->sign;
 	signb = b->sign;
@@ -106,13 +109,13 @@ bignum* divide(bignum *a, bignum *b){
 	dividend->last_digit = 0;
 	dividend->decimal_point = 0;
 	int taken_digit = a->last_digit;
-	dividend[0] = a->digits[last_digit];
+	dividend->digits[0] = a->digits[a->last_digit];
 	//dividend = product_with_digit(a,1);
 	int guess;
 	while( dividend->last_digit >= 0  )  { //find last dig gives -1 for number 0 
 		guess = divide_guess_digit(dividend,b);
 		guess_product  = product_with_digit(b,guess);
-		subtracted = subtract(dividend,guess_product);
+		subtracted = subtract_bignum(dividend,guess_product);
 		free(dividend);
 		dividend = subtracted;
 		shift_right(ret,1);
@@ -121,11 +124,11 @@ bignum* divide(bignum *a, bignum *b){
 			//take one more digit
 			shift_right(dividend,1);
 			taken_digit -=1;
-			dividend[0] = a->digits[taken_digit];
+			dividend->digits[0] = a->digits[taken_digit];
 		}
 		else{
 			shift_right(dividend,1);
-			dividend[0] = 0;
+			dividend->digits[0] = 0;
 			ret->decimal_point += 1;
 		}
 		dividend->last_digit = find_last_index(dividend); //not needed probz if sub also does this
@@ -140,7 +143,8 @@ bignum* divide(bignum *a, bignum *b){
 	return ret;
 }
 bignum* divide_single_digit(bignum* a, int b){
-	bignum * ret , temp ;
+	bignum * ret  ;
+	bignum *temp;
 	ret = malloc(sizeof *ret);
 	temp = bigify_int(b);
 	ret = divide(a,temp);
@@ -161,8 +165,8 @@ bignum* bigify_int(int inp){
 	}
 	while(inp>0){
 		temp->digits[0] = inp % 10;
-		temp->last_digit + =1;
-		inp = inp / 10
+		temp->last_digit += 1;
+		inp = inp / 10;
 	}
 	return temp;
 }
@@ -176,8 +180,8 @@ bignum* div2; */
 	bignum* n;
 	accuracy = bigify_int(1);
 	accuracy->decimal_point = 6;
-	n = bigify_int(n);
-	copy = product(a,1);
+	n = add_bignum(a,0);
+	copy = product(a,bigify_int(1));
 	y = bigify_int(1);
 	if(a->sign=-1){
 
@@ -259,7 +263,6 @@ int find_last_index ( bignum *inp ) {
 
 bignum* string_to_bignum(char *inp){
 	bignum* ret = malloc(sizeof *ret);
-	// only positive ( I'll let unary negaion take care of the negative parts)
 	ret->sign = 1;
 	int point_seen ;
 	int d,a=0;
@@ -275,37 +278,76 @@ bignum* string_to_bignum(char *inp){
 		d = *inp - '0';
 		if (d >= 0 && d <= 9){
 			if (point_seen) ret->decimal_point+=1;
+			shift_right(ret,1);
 			ret->digits[a] = d;
-			shift_right(ret,1)
 		};
 	};
 	ret->last_digit = find_last_index(ret);
 	return ret;
 }
+char* concat(const char *s1, const char *s2)
+{
+    char *result = malloc(strlen(s1)+strlen(s2)+1);//+1 for the zero-terminator
+    //in real code you would check for errors in malloc here
+    strcpy(result, s1);
+    strcat(result, s2);
+    return result;
+}
 char* bignum_to_string(bignum *inp){
-	char *ret;
-	char *start = ret;
+	char *ret = "";
 	int kk;
 	if(inp->sign==-1){
-		ret = malloc(1);
-		ret = '-';
-		ret++;
+		ret = concat(ret,"-");
 	}
 	for(kk = inp->last_digit; kk>=0;kk--){
 		if((kk+1) == inp->decimal_point ){
-			ret = malloc(1);
-			ret = '.';
-			ret++;
+			ret = concat(ret,".");
+		//	ret = malloc(1);
+			//*ret = '.';
+			//ret++;
 		}
-		ret = malloc(1);
-		ret = (char) (48 + inp->digits[kk]);
-		ret++;
+		//ret = malloc(1);
+		char aa = (char) (48 + inp->digits[kk]);
+		char temp[] = "";
+		sprintf(temp,"%c",aa);
+		ret = concat(ret,temp);
+		//ret++;
 	}
-	ret = malloc(1);
-	ret = '\0';
-	ret++;
-	return start;
+	return ret;
 }
+
+
+
+//////temp
+bignum* add_bignum(bignum* a , bignum* b){
+	char * tee;
+	sprintf(tee, "%f", atof(bignum_to_string(a)) + atof(bignum_to_string(b)));
+	printf("--%s--",tee);
+	return string_to_bignum(tee);
+}
+bignum* subtract_bignum(bignum* a , bignum* b){
+	char * tee;
+	sprintf(tee, "%f", atof(bignum_to_string(a)) - atof(bignum_to_string(b)));
+	return string_to_bignum(tee);
+}
+int is_greater(bignum* a , bignum* b){
+	if(atof(bignum_to_string(a)) > atof(bignum_to_string(b))){
+		return 1;
+	}
+	
+	else{
+		return -1;
+	}
+}
+
+//////
+
+
+
+
+
+
+
 
 
 
@@ -325,8 +367,8 @@ int main(){
 	print_big(v);
 	printf("\n");
 	print_big(product_with_digit(v,8));
-	printf("\n");
-
+	printf("%s",bignum_to_string(string_to_bignum(bignum_to_string(string_to_bignum(bignum_to_string(v))))));
+	
 
 	return 0;
 }
