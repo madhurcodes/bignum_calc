@@ -13,9 +13,9 @@ typedef struct {
 
 void print(bignum *a);
 void add_bignum_positive(bignum *a, bignum *b, bignum *c);
-void add_bignum(bignum *a, bignum *b, bignum *c);
+bignum* add_bignum(bignum *a, bignum *b);
 bignum* complement(bignum *a);
-void subtract_bignum(bignum *a, bignum *b, bignum *c);
+bignum* subtract_bignum(bignum *a, bignum *b);
 void align_decimals(bignum *a, int shift_amount);
 void remove_leading_zeroes(bignum *c);
 int isgreater(bignum *a, bignum*b);
@@ -81,7 +81,8 @@ void add_bignum_positive(bignum *a, bignum *b, bignum *c) {
 		remove_leading_zeroes(b);
 }
 
-void add_bignum(bignum *a, bignum *b, bignum *c) { //does c = a+b
+bignum* add_bignum(bignum *a, bignum *b) {
+	bignum*c = (bignum *)malloc(sizeof(bignum)); //does c = a+b
 	if(a->sign >0 && b->sign>0){
 		c->sign = 1;
 		add_bignum_positive(a,b,c);
@@ -115,6 +116,7 @@ void add_bignum(bignum *a, bignum *b, bignum *c) { //does c = a+b
 		a->sign = -1;
 	}
 	remove_leading_zeroes(c);
+	return c;
 }
 
 bignum* complement(bignum *a){
@@ -230,7 +232,8 @@ int isgreater(bignum *a, bignum*b){ //checks if a>b if yes then 1 else -1
 	}
 }
 
-void subtract_bignum(bignum *a, bignum *b, bignum *c) { //Does c=a-b
+bignum* subtract_bignum(bignum *a, bignum *b) {
+	bignum *c = (bignum *)malloc(sizeof(bignum)); //Does c=a-b
 	if(a->sign >0 && b->sign<0){
 		c->sign = 1;
 		add_bignum_positive(a,b,c);
@@ -262,6 +265,7 @@ void subtract_bignum(bignum *a, bignum *b, bignum *c) { //Does c=a-b
 		a->sign = -1;
 		b->sign = -1;
 	}
+	return c;
 }
 
 
@@ -313,9 +317,9 @@ int main() {
 	bignum *c = (bignum *) malloc(sizeof(bignum));
 	print(b);
 
-	add_bignum(a,b,c);
+	c = add_bignum(a,b);
 	print(c);
-	subtract_bignum(a,b,c);
+	c = subtract_bignum(a,b);
 	print(c);
 
 	return 1;
