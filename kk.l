@@ -11,7 +11,7 @@
 %%
 
 [ \t]	; // ignore all whitespace
-[0-9]+(\.)?[0-9]+ 	{yylval.ival = strdup(yytext); return T_INT;}
+[0-9]*(\.)?[0-9]* 	{yylval.ival = strdup(yytext); return T_INT;}
 \n		{return T_NEWLINE;}
 "+"		{return T_PLUS;}
 "-"		{return T_MINUS;}
