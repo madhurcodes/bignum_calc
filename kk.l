@@ -1,9 +1,8 @@
 %option noyywrap
 
 %{
+
 #include <stdio.h>
-
-
 #include "myson.tab.h"
 
 %}
